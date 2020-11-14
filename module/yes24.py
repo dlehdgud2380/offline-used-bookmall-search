@@ -65,6 +65,9 @@ class Searchpage:
     def print_data(self):
         for i in range(0, len(self.search_result)):
             print(json.dumps(self.search_result[i], indent=4, ensure_ascii = False))
+    
+    def return_data(self):
+        return self.search_result
 
 '''
 if __name__ == "__main__":

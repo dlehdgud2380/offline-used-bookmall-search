@@ -101,6 +101,9 @@ class Itempage:
         for i in range(0, len(self.shops_stock)):
             print(json.dumps(self.shops_stock[i], indent=4, ensure_ascii = False))
 
+    def return_data(self):
+        return self.shops_stock
+
 '''
 if __name__ == "__main__":
     print("알라딘 오프라인 상점 검색기\n\n")
