@@ -9,10 +9,15 @@ import json
 #알라딘 고정 URL
 URL = "https://www.aladin.co.kr/search/wsearchresult.aspx?SearchTarget=UsedStore&KeyTag=&SearchWord="
 
+def get_html(url):
+    html = requests.get(url).text
+    return html
+
 #알라딘 검색 페이지 크롤링 클래스
 class Searchpage:
     def __init__(self, keyword):
-        html = requests.get(URL + keyword).text
+        html = get_html(URL + keyword)
+        self.keyword = keyword
         self.soup = BeautifulSoup(html, 'html.parser')
         self.get_items = self.soup.find_all("div", class_ = "ss_book_box")
         self.item_quantity = len(self.get_items)
@@ -21,13 +26,16 @@ class Searchpage:
         self.list_title = []
         self.list_description = []
         self.list_shop = []
+        self.json_result = []
 
         #검색페이지 크롤링 실행
         self.__parse_searchdata()
 
     # 알라딘 검색페이지 크롤링 함수
     def __parse_searchdata(self):
+        index = 0
         for i in self.get_items:
+
             #책 제목 가져오기
             title = i.find("b", class_ = "bo3").text
 
@@ -36,17 +44,21 @@ class Searchpage:
             description = tag_li[1].text
 
             #재고 있는 매장들 가져오기
-            shop = {}
+            instock_shop = {}
             tag_a = i.find_all("a", class_ = "usedshop_off_text3")
             for j in tag_a:
                 shopname = j.text
                 shopurl = j.attrs['href']
-                shop.setdefault(shopname, shopurl)
+                instock_shop.setdefault(shopname, shopurl)
 
             #HTML 소스코드 위에서 아래순으로 데이터들 리스트 추가
             self.list_title.append(title)
             self.list_description.append(description)
-            self.list_shop.append(shop)
+            self.list_shop.append(instock_shop)
+
+            #JSON으로 아이템 저장하기
+            self.json_result.append({"id":index, "bookname" : title, "description" : description, "mall" : list(instock_shop.keys())})
+            index += 1
 
     #데이터들 클래스 외부로 리턴
     def return_data(self):
@@ -54,19 +66,16 @@ class Searchpage:
     
     #데이터 잘 들어있나 확인
     def print_searchdata(self):
-        for i in range(0, self.item_quantity):
-            print(self.list_title[i])
-            print(self.list_description[i])
-            print(list(self.list_shop[i].keys()))
-            print("--------------------------- \n")
+        print(json.dumps(self.json_result, indent=4, ensure_ascii = False))
 
-#선택한 책에 대한 정보를 크롤링
+#선택한 책에 대한 정보를 크롤링 
 class Itempage:
-    def __init__(self, num, searchresult):
+    def __init__(self, searchresult, num):
         self.title = searchresult[0][num]
         self.description = searchresult[1][num]
         self.target_shops = searchresult[2][num]
         self.shops_stock = []
+        self.result = []
         self.__parse_itemdata()
 
     #선택한 책의 매장별 가격과 위치 크롤링
@@ -77,42 +86,34 @@ class Itempage:
         #각 각 매장에 있는 책의 정보 가져오기
         loop_count = 0
         for i in shopurl:
-            html = requests.get(i).text
+            html = get_html(i)
             self.soup = BeautifulSoup(html, 'html.parser')
             self.get_stock = self.soup.find_all("div", class_="ss_book_box") #매장에 책 재고 있는 만큼 정보 가져오기
             count_stock = len(self.get_stock)
             stock = []
+            index = 0
             for j in self.get_stock:
                 price = j.find("span", class_="ss_p2").text #매장의 책 가격
                 quality = j.find("span", class_="us_f_bob").text.strip() #매장의 책 상태
                 location = j.find_all("span", class_="ss_p3")[3].find("b").text[7:].strip() #책이 있는 위치
-                
                 #매장안에 있는 책의 정보들 json으로 저장
-                item = {'가격' : price, '상태' : quality, '서적 위치' : location}
+                item = {'stock_id': index,'price' : price, 'quality' : quality, 'location' : location}
                 stock.append(item)
+                index += 1
             #매장 지점별로 책 재고 정보 저장
-            self.shops_stock.append({'지점' : shopname[loop_count], '재고 수량' : count_stock, '재고 현황' : stock})
+            self.shops_stock.append({'mall_id' : loop_count, 'mall' : shopname[loop_count], 'count_stock' : count_stock, 'status_stock' : stock })
             loop_count += 1
+        self.result = {'bookname' : self.title, 'result' : self.shops_stock}
 
     #하나의 책에 대한 매장별로 재고 현황 표시
     def print_data(self):
-        print("책제목: " + self.title)
-        print("설명: " + self.description)
-        for i in range(0, len(self.shops_stock)):
-            print(json.dumps(self.shops_stock[i], indent=4, ensure_ascii = False))
+        print(json.dumps(self.result, indent=4, ensure_ascii = False))
 
     def return_data(self):
         return self.shops_stock
 
-'''
 if __name__ == "__main__":
-    print("알라딘 오프라인 상점 검색기\n\n")
-    keyword = input("검색내용 입력: ")
-    print("\n")
-    a = Searchpage(keyword)
+    a = Searchpage("다빈치코드")
     a.print_searchdata()
-    num = int(input("몇번째 아이템을 선택? : "))-1
-    print("\n")
-    b = Itempage(num, a.return_data())
-    b.print_data()
-'''
+    #b = Itempage(a.return_data(), 1)
+   # b.print_data()

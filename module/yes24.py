@@ -58,9 +58,9 @@ class Searchpage:
                         location = "위치정보 없음"
 
                     #이제 이것들을 json 파일로 저장시켜버리자
-                    item = {'책 제목' : title, '설명' : description, '가격' : price, '서적 위치' : location}
+                    item = {'bookname' : title, 'description' : description, 'price' : price, 'location' : location}
                     result.append(item)
-            self.search_result.append({'매장' : mall_name[i], '검색 결과' : result})
+            self.search_result.append({'mall' : mall_name[i], 'result' : result})
 
     def print_data(self):
         for i in range(0, len(self.search_result)):
@@ -69,8 +69,7 @@ class Searchpage:
     def return_data(self):
         return self.search_result
 
-'''
+
 if __name__ == "__main__":
-    a = Searchpage("시스템")
+    a = Searchpage("스즈미야")
     a.print_data()
-''' 
