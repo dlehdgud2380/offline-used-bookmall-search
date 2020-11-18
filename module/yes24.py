@@ -4,6 +4,7 @@ YES24 OfflineShop Parse Module by Sc0_Nep
 from bs4 import BeautifulSoup
 import requests
 import json
+import time
 
 #중고몰메인페이지에서 매장 어디어디 있는지 가져옴
 MAIN_URL = "http://www.yes24.com/Mall/UsedStore/Main"
@@ -16,10 +17,13 @@ for i in get_malls:
 
 class Searchpage:
     def __init__(self, keyword):
+        start = time.time()
         self.keyword = str(keyword.encode('ascii', 'backslashreplace')).upper().replace('\\\\U', '%u')[2:][:-1]
+        print("검색키워드: " + keyword + " - yes24크롤링시작")
         #매장별 검색결과 리스트
         self.search_result = []
         self.__parse_searchdata()
+        print("time :", time.time() - start)
     
     def __parse_searchdata(self):
         COMMON_URL = "http://www.yes24.com/Mall/UsedStore/Search?STORE_CODE="
@@ -57,19 +61,19 @@ class Searchpage:
                         price = "가격정보 없음"
                         location = "위치정보 없음"
 
-                    #이제 이것들을 json 파일로 저장시켜버리자
+                    #이제 이것들을 json으로 저장시켜버리자
                     item = {'bookname' : title, 'description' : description, 'price' : price, 'location' : location}
                     result.append(item)
             self.search_result.append({'mall' : mall_name[i], 'result' : result})
 
     def print_data(self):
-        for i in range(0, len(self.search_result)):
-            print(json.dumps(self.search_result[i], indent=4, ensure_ascii = False))
+        print(json.dumps(self.search_result, indent=4, ensure_ascii = False))
     
     def return_data(self):
         return self.search_result
 
-
+'''
 if __name__ == "__main__":
     a = Searchpage("스즈미야")
     a.print_data()
+'''

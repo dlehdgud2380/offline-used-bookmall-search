@@ -5,13 +5,16 @@ Aladin OfflineShop Parse Module by Sc0_Nep
 from bs4 import BeautifulSoup
 import requests
 import json
+import time
+from concurrent.futures import ThreadPoolExecutor
 
 #알라딘 고정 URL
 URL = "https://www.aladin.co.kr/search/wsearchresult.aspx?SearchTarget=UsedStore&KeyTag=&SearchWord="
 
 def get_html(url):
-    html = requests.get(url).text
-    return html
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        thread = executor.submit(requests.get, url)
+    return thread.result().text
 
 #알라딘 검색 페이지 크롤링 클래스
 class Searchpage:
@@ -34,21 +37,21 @@ class Searchpage:
     # 알라딘 검색페이지 크롤링 함수
     def __parse_searchdata(self):
         index = 0
-        for i in self.get_items:
+        for j in self.get_items:
 
             #책 제목 가져오기
-            title = i.find("b", class_ = "bo3").text
+            title = j.find("b", class_ = "bo3").text
 
             #책 설명 가져오기
-            tag_li = i.find_all("li")
+            tag_li = j.find_all("li")
             description = tag_li[1].text
 
             #재고 있는 매장들 가져오기
             instock_shop = {}
-            tag_a = i.find_all("a", class_ = "usedshop_off_text3")
-            for j in tag_a:
-                shopname = j.text
-                shopurl = j.attrs['href']
+            tag_a = j.find_all("a", class_ = "usedshop_off_text3")
+            for k in tag_a:
+                shopname = k.text
+                shopurl = k.attrs['href']
                 instock_shop.setdefault(shopname, shopurl)
 
             #HTML 소스코드 위에서 아래순으로 데이터들 리스트 추가
@@ -69,51 +72,60 @@ class Searchpage:
         print(json.dumps(self.json_result, indent=4, ensure_ascii = False))
 
 #선택한 책에 대한 정보를 크롤링 
-class Itempage:
-    def __init__(self, searchresult, num):
-        self.title = searchresult[0][num]
-        self.description = searchresult[1][num]
-        self.target_shops = searchresult[2][num]
-        self.shops_stock = []
+class Search_result(Searchpage):
+    def __init__(self, keyword):
+        start = time.time()
+        print("검색키워드: " + keyword + " - Aladin크롤링시작")
+        super().__init__(keyword)
+        data = super().return_data()
+        self.title = data[0]
+        self.description = data[1]
+        self.target_shops = data[2]
         self.result = []
         self.__parse_itemdata()
+        print("time :", time.time() - start)
 
     #선택한 책의 매장별 가격과 위치 크롤링
     def __parse_itemdata(self):
-        shopurl = self.target_shops.values()
-        shopname = list(self.target_shops.keys())
 
-        #각 각 매장에 있는 책의 정보 가져오기
-        loop_count = 0
-        for i in shopurl:
-            html = get_html(i)
-            self.soup = BeautifulSoup(html, 'html.parser')
-            self.get_stock = self.soup.find_all("div", class_="ss_book_box") #매장에 책 재고 있는 만큼 정보 가져오기
-            count_stock = len(self.get_stock)
-            stock = []
-            index = 0
-            for j in self.get_stock:
-                price = j.find("span", class_="ss_p2").text #매장의 책 가격
-                quality = j.find("span", class_="us_f_bob").text.strip() #매장의 책 상태
-                location = j.find_all("span", class_="ss_p3")[3].find("b").text[7:].strip() #책이 있는 위치
-                #매장안에 있는 책의 정보들 json으로 저장
-                item = {'stock_id': index,'price' : price, 'quality' : quality, 'location' : location}
-                stock.append(item)
-                index += 1
-            #매장 지점별로 책 재고 정보 저장
-            self.shops_stock.append({'mall_id' : loop_count, 'mall' : shopname[loop_count], 'count_stock' : count_stock, 'status_stock' : stock })
-            loop_count += 1
-        self.result = {'bookname' : self.title, 'result' : self.shops_stock}
+        #검색결과 전체적으로 돌려보자
+        for i in range(0, len(self.title)):
+            shopurl = self.target_shops[i].values()
+            shopname = list(self.target_shops[i].keys())
+            shops_stock = []
+            item_result = []
+            for loop, j in enumerate(shopurl):
+                html = get_html(j)
+                self.soup = BeautifulSoup(html, 'html.parser')
+                self.get_stock = self.soup.find_all("div", class_="ss_book_box") #매장에 책 재고 있는 만큼 정보 가져오기
+                count_stock = len(self.get_stock)
+                stock = []
+                index = 0
+                for k in self.get_stock:
+                    price = k.find("span", class_="ss_p2").text #매장의 책 가격
+                    quality = k.find("span", class_="us_f_bob").text.strip() #매장의 책 상태
+                    location = k.find_all("span", class_="ss_p3")[3].find("b").text[7:].strip() #책이 있는 위치
+                    #매장안에 있는 책의 정보들 json으로 저장
+                    item = {'stock_id': index,'price' : price, 'quality' : quality, 'location' : location}
+                    item = json.dumps(item, ensure_ascii=False, indent=4)
+                    stock.append(item)
+                    index += 1
+                #매장 지점별로 책 재고 정보 저장
+                shops_stock.append({'mall_id' : loop, 'mall' : shopname[loop], 'count_stock' : count_stock, 'status_stock' : stock })
+            item_result.append({'search_id' : i, 'bookname' : self.title[i], 'description': self.description[i], 'result' : shops_stock})
+            self.result.append(item_result)
 
     #하나의 책에 대한 매장별로 재고 현황 표시
     def print_data(self):
         print(json.dumps(self.result, indent=4, ensure_ascii = False))
 
     def return_data(self):
-        return self.shops_stock
+        return self.result
 
+'''
 if __name__ == "__main__":
     a = Searchpage("다빈치코드")
     a.print_searchdata()
-    #b = Itempage(a.return_data(), 1)
+    #b = Search_result(a.return_data(), 1)
    # b.print_data()
+'''
