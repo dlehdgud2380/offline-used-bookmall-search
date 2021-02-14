@@ -1,4 +1,4 @@
-# used_bookshop-module
+# offline_used_bookmall_search
 yes24, 알라딘 오프라인 중고 서점 크롤링 모듈
 
 ## 서버킨후 주소형식
