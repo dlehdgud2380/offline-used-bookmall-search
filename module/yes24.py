@@ -6,10 +6,10 @@ import requests
 import json
 import time
 
-#중고몰메인페이지에서 매장 어디어디 있는지 가져옴
+# 중고몰메인페이지에서 매장 어디어디 있는지 가져옴
 MAIN_URL = "http://www.yes24.com/Mall/UsedStore/Main"
 html = requests.get(MAIN_URL).text
-soup = BeautifulSoup(html, "html.parser")
+soup = BeautifulSoup(html, "lxml")
 get_malls = soup.find("ul", id="ulStoreSerchCategory").find_all("li")
 malls = {} #중고서점 지점 : 중고서점 고유코드
 for i in get_malls:
@@ -20,7 +20,7 @@ class Searchpage:
         start = time.time()
         self.keyword = str(keyword.encode('ascii', 'backslashreplace')).upper().replace('\\\\U', '%u')[2:][:-1]
         print("검색키워드: " + keyword + " - yes24크롤링시작")
-        #매장별 검색결과 리스트
+        # 매장별 검색결과 리스트
         self.search_result = []
         self.__parse_searchdata()
         print("time :", time.time() - start)

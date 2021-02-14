@@ -21,7 +21,7 @@ class Searchpage:
     def __init__(self, keyword):
         html = get_html(URL + keyword)
         self.keyword = keyword
-        self.soup = BeautifulSoup(html, 'html.parser')
+        self.soup = BeautifulSoup(html, 'lxml')
         self.get_items = self.soup.find_all("div", class_ = "ss_book_box")
         self.item_quantity = len(self.get_items)
 
