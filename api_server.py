@@ -1,5 +1,6 @@
 from flask_restful import Resource, reqparse, Api
 from flask import Flask, make_response
+from flask_cors import CORS
 import module.yes24 as Yes24
 import module.aladin as Aladin
 import json
@@ -24,6 +25,7 @@ class Search(Resource):
             return {'error': str(e)}
 
 app = Flask('api_offbookstore')
+CORS(app)
 app.config['JSON_AS_ASCII'] = False
 api = Api(app)
 api.add_resource(Search, '/search')
