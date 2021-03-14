@@ -1,16 +1,19 @@
 from flask_restful import Resource, reqparse, Api
 from flask import Flask, make_response
 from flask_cors import CORS
-import module.yes24 as Yes24
-import module.aladin as Aladin
+import module.yes24_v1 as Yes24
+import module.aladin_v1 as Aladin
 import json
+
 
 class Search(Resource):
     def get(self):
         try:
             parser = reqparse.RequestParser()
-            parser.add_argument('word', required=True, type=str, help='Please enter word')
-            parser.add_argument('mode', required=True, type=int, help='Please enter mode')
+            parser.add_argument('word', required=True,
+                                type=str, help='Please enter word')
+            parser.add_argument('mode', required=True,
+                                type=int, help='Please enter mode')
             args = parser.parse_args()
             result = ''
             if args['mode'] == 0:
@@ -24,6 +27,7 @@ class Search(Resource):
         except Exception as e:
             return {'error': str(e)}
 
+
 app = Flask('api_offbookstore')
 CORS(app)
 app.config['JSON_AS_ASCII'] = False
@@ -31,4 +35,4 @@ api = Api(app)
 api.add_resource(Search, '/search')
 
 if __name__ == '__main__':
-        app.run(host='0.0.0.0', port=8000, debug=True)
+    app.run(host='0.0.0.0', port=8000, debug=True)
