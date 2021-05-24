@@ -69,7 +69,7 @@ class Searchpage:
 
             # JSON으로 아이템 저장하기
             self.json_result.append({"id": index, "bookname": title, "description": description,
-                                     "imgurl": imgurl, "mall": list(instock_shop.keys())})
+                                    "imgurl": imgurl, "mall": list(instock_shop.keys())})
             index += 1
 
     # 데이터들 클래스 외부로 리턴
@@ -141,10 +141,8 @@ class Search_result(Searchpage):
         return self.result
 
 
-'''
 if __name__ == "__main__":
-    a = Searchpage("다빈치코드")
-    a.print_searchdata()
-    #b = Search_result(a.return_data(), 1)
-   # b.print_data()
-'''
+    # a = Searchpage("python")
+    # a.print_searchdata()
+    b = Search_result("다빈치코드")
+    # b.print_data()

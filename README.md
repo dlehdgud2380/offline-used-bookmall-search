@@ -1,4 +1,4 @@
-# offline_used_bookmall_search
+# Backend
 yes24, 알라딘 오프라인 중고 서점 크롤링 모듈
 
 ## Spec
@@ -7,6 +7,7 @@ yes24, 알라딘 오프라인 중고 서점 크롤링 모듈
 * Flask 1.1.2
 * beautifulsoup4 4.9.3
 * lxml 4.6.2
+* Flask-RESTful 0.3.8
 
 ## Getting Start
 1. pip install -r requirements.txt
