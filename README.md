@@ -22,5 +22,8 @@ http://sc0nep.iptime.org:7000/search?word=스즈미야하루히의우울&mode=0
 0: 알라딘
 1: yes24
 
-## 백엔드&프론트엔드 통합 저장소
+## Dockerfile을 이용하여 이미지 생성 후 컨테이너 만들기
+
+
+## 백엔드&프론트엔드 통합 검색엔진 관련 저장소
 https://github.com/cappstone/offline_oldbook_searchengine
