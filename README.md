@@ -21,3 +21,6 @@ http://sc0nep.iptime.org:7000/search?word=스즈미야하루히의우울&mode=0
 ## 검색모드
 0: 알라딘
 1: yes24
+
+## 백엔드&프론트엔드 통합 저장소
+https://github.com/cappstone/offline_oldbook_searchengine
