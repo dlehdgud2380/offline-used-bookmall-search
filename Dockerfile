@@ -1,18 +1,16 @@
-# Python 기반의 크롤러 개발환경 구축하기 
+# 파이썬 이미지 기반으로 이미지 생성
+FROM ubuntu:18.04
 
-# ubuntu:최신 버전 이미지 기반으로 이미지 생성
-FROM ubuntu:latest
+# Project 가져오기
+RUN apt update && apt install -y git python3-minimal python3-pip libxml2-dev libxslt-dev
+RUN git clone https://github.com/dlehdgud2380/offline-used-bookmall-search
+WORKDIR /offline-used-bookmall-search
 
-# apt를 이용하여 패키지 설치
-RUN apt update
-RUN apt install -y python3 && apt install -y python3-pip
-RUN apt install -y nano
+# requirements 설치하기
+RUN pip3 install -r requirements.txt
 
-# pip3를 이용하여 파이썬 라이브러리 설치
-RUN pip3 install requests bs4 selenium
+# PORT FORWARDING
+EXPOSE 7000
 
-# /workspace 라는 디렉터리 만들기
-RUN mkdir /workspace
-
-# 작업환경 디렉터리를 /workspace 디렉터리로 설정하기
-WORKDIR /workspace
+# RUN API Server
+CMD ["python3", "api_server.py"]
